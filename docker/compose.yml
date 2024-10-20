@@ -14,7 +14,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-      target: base #for development change that later
+      target: build
     environment:
       ROS_DOMAIN_ID: $ROS_DOMAIN_ID
       DISPLAY: $DISPLAY

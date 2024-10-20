@@ -15,17 +15,19 @@ RUN apt update \
     ros-$ROS_DISTRO-rqt-common-plugins \
     && rm -rf /var/lib/apt/lists/*
 
-
+# Set up workspace
 ENV ROS2_WS=/root/ros2_ws
-# TODO copy ros2 stuff here 
+COPY rviz2_cinematographer_msgs $ROS2_WS/src/rviz2_cinematographer_msgs
 
 # Install ros dependencies, assume rosdep is initialized in base image
-# RUN apt update \
-#     && rosdep update \ 
-#     && rosdep install --from-paths $ROS2_WS/src --ignore-src -r -y \
-#     && rm -rf /var/lib/apt/lists/*
+RUN apt update \
+    && rosdep update \
+    && rosdep install --from-paths $ROS2_WS/src --ignore-src -r -y \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM base AS build
+WORKDIR $ROS2_WS
 RUN source /opt/ros/$ROS_DISTRO/setup.bash \
     && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release \
+    && echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /root/.bashrc \
     && echo "source $ROS2_WS/install/setup.bash" >> /root/.bashrc
