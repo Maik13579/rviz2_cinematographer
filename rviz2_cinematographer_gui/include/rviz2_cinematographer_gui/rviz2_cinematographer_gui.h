@@ -3,10 +3,14 @@
  * Simple rqt plugin to edit trajectories.
  *
  * @author Jan Razlaw
+ * @author Maik Knof (port to ROS2)
  */
 
-#ifndef RVIZ_CINEMATOGRAPHER_GUI_H
-#define RVIZ_CINEMATOGRAPHER_GUI_H
+#ifndef RVIZ2_CINEMATOGRAPHER_GUI_H
+#define RVIZ2_CINEMATOGRAPHER_GUI_H
+
+#include <filesystem>
+namespace fs = std::filesystem;
 
 #include <fstream>
 #include <sstream>
@@ -14,34 +18,34 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include <ros/ros.h>
-#include <ros/package.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
-#include <tf/tf.h>
-#include <tf/transform_datatypes.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
 
-#include <rviz_cinematographer_msgs/CameraMovement.h>
-#include <rviz_cinematographer_msgs/CameraTrajectory.h>
-#include <rviz_cinematographer_msgs/Record.h>
-#include <rviz_cinematographer_msgs/Finished.h>
+#include <rviz2_cinematographer_msgs/msg/camera_movement.hpp>
+#include <rviz2_cinematographer_msgs/msg/camera_trajectory.hpp>
+#include <rviz2_cinematographer_msgs/msg/record.hpp>
+#include <rviz2_cinematographer_msgs/msg/finished.hpp>
 
-#include <std_msgs/Empty.h>
+#include <std_msgs/msg/empty.hpp>
 
-#include <nav_msgs/Path.h>
+#include <nav_msgs/msg/path.hpp>
 
-#include <interactive_markers/interactive_marker_server.h>
-#include <interactive_markers/menu_handler.h>
+#include <interactive_markers/interactive_marker_server.hpp>
+#include <interactive_markers/menu_handler.hpp>
 
 #include <rqt_gui_cpp/plugin.h>
 
 #include <QWidget>
 #include <QFileDialog>
 
-#include <rviz_cinematographer_gui/utils.h>
-#include <ui_rviz_cinematographer_gui.h>
+#include <rviz2_cinematographer_gui/utils.h>
+#include "ui_rviz2_cinematographer_gui.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
@@ -54,20 +58,20 @@
 #include <spline_library/vector.h>
 
 
-namespace rviz_cinematographer_gui
+namespace rviz2_cinematographer_gui
 {
 
 /**
- * @brief Manipulates the rviz camera.
+ * @brief Manipulates the rviz2 camera.
  */
-class RvizCinematographerGUI : public rqt_gui_cpp::Plugin
+class Rviz2CinematographerGUI : public rqt_gui_cpp::Plugin
 {
 
 Q_OBJECT
 public:
   struct InteractiveMarkerWithDurations
   {
-    InteractiveMarkerWithDurations(visualization_msgs::InteractiveMarker&& input_marker,
+    InteractiveMarkerWithDurations(visualization_msgs::msg::InteractiveMarker&& input_marker,
                                    const double transition_duration,
                                    const double wait_duration = 0.0)
       : marker(input_marker)
@@ -76,7 +80,7 @@ public:
     {
     }
 
-    visualization_msgs::InteractiveMarker marker;
+    visualization_msgs::msg::InteractiveMarker marker;
     double transition_duration;
     double wait_duration;
   };
@@ -85,18 +89,18 @@ public:
   typedef std::list<TimedMarker> MarkerList;
   typedef typename MarkerList::iterator MarkerIterator;
 
-  enum
+ enum
   {
-    RISING_INTERPOLATION_SPEED = rviz_cinematographer_msgs::CameraMovement::RISING,
-    DECLINING_INTERPOLATION_SPEED = rviz_cinematographer_msgs::CameraMovement::DECLINING,
-    FULL_INTERPOLATION_SPEED = rviz_cinematographer_msgs::CameraMovement::FULL,
-    WAVE_INTERPOLATION_SPEED = rviz_cinematographer_msgs::CameraMovement::WAVE,
+    RISING_INTERPOLATION_SPEED = rviz2_cinematographer_msgs::msg::CameraMovement::RISING,
+    DECLINING_INTERPOLATION_SPEED = rviz2_cinematographer_msgs::msg::CameraMovement::DECLINING,
+    FULL_INTERPOLATION_SPEED = rviz2_cinematographer_msgs::msg::CameraMovement::FULL,
+    WAVE_INTERPOLATION_SPEED = rviz2_cinematographer_msgs::msg::CameraMovement::WAVE,
   };
 
 
   /** @brief Constructor. */
-  RvizCinematographerGUI();
-  ~RvizCinematographerGUI() = default;
+  Rviz2CinematographerGUI();
+  ~Rviz2CinematographerGUI() = default;
 
   /**
    * @brief Sets up subscribers and publishers and connects GUI to functions.
@@ -133,21 +137,21 @@ public:
    *
    * @param[in] cam_pose    pointer to current camera pose.
    */
-  void camPoseCallback(const geometry_msgs::Pose::ConstPtr& cam_pose);
+  void camPoseCallback(const geometry_msgs::msg::Pose::ConstPtr& cam_pose);
 
 Q_SIGNALS:
   void updateRequested();
 
 public slots:
-  /** @brief Moves rviz camera to currently selected pose.*/
+  /** @brief Moves rviz2 camera to currently selected pose.*/
   void moveCamToCurrent();
-  /** @brief Moves rviz camera to the pose before the selected one.*/
+  /** @brief Moves rviz2 camera to the pose before the selected one.*/
   void moveCamToPrev();
-  /** @brief Moves rviz camera subsequently to the first pose in the trajectory.*/
+  /** @brief Moves rviz2 camera subsequently to the first pose in the trajectory.*/
   void moveCamToFirst();
-  /** @brief Moves rviz camera to the pose after the selected one.*/
+  /** @brief Moves rviz2 camera to the pose after the selected one.*/
   void moveCamToNext();
-  /** @brief Moves rviz camera subsequently to the last pose in the trajectory.*/
+  /** @brief Moves rviz2 camera subsequently to the last pose in the trajectory.*/
   void moveCamToLast();
   /** @brief Update selected marker with values from GUI.*/
   void updateCurrentMarker();
@@ -155,9 +159,9 @@ public slots:
   void updateMarker();
   /** @brief Updates which marker is labeled as the currently active marker.*/
   void updateWhoIsCurrentMarker(int marker_id);
-  /** @brief Appends the current pose of the rviz camera to the trajectory.*/
+  /** @brief Appends the current pose of the rviz2 camera to the trajectory.*/
   void appendCamPoseToTrajectory();
-  /** @brief Sets selected pose to the current pose of the rviz camera.*/
+  /** @brief Sets selected pose to the current pose of the rviz2 camera.*/
   void setCurrentPoseToCam();
   /** @brief Reconstructs trajectory from current markers. */
   void updateTrajectory();
@@ -191,7 +195,7 @@ private:
    * @brief Creates a CameraMovement hull.
    * @return CameraMovement.
    */
-  rviz_cinematographer_msgs::CameraMovement makeCameraMovement();
+  rviz2_cinematographer_msgs::msg::CameraMovement makeCameraMovement();
 
   /**
    * @brief Creates an InteractiveMarker hull.
@@ -201,9 +205,9 @@ private:
    * @param[in] z   z position of marker.
    * @return InteractiveMarker.
    */
-  visualization_msgs::InteractiveMarker makeMarker(double x = 0.0,
-                                                   double y = 0.0,
-                                                   double z = 0.0);
+  visualization_msgs::msg::InteractiveMarker makeMarker(double x = 0.0,
+                                                        double y = 0.0,
+                                                        double z = 0.0);
 
   /**
    * @brief Colorize all markers in red.
@@ -230,20 +234,20 @@ private:
   void updateMarkerScales(float scale_factor);
 
   /**
-   * @brief Checks if current position of rviz camera is within bounds of spin boxes.
+   * @brief Checks if current position of rviz2 camera is within bounds of spin boxes.
    *
    * @return true, if camera is within bounds.
    */
   bool isCamWithinBounds();
 
   /**
-   * @brief Rotates rviz_cam_pose around z-axis for -90 degrees.
+   * @brief Rotates rviz2_cam_pose around z-axis for -90 degrees.
    *
-   * @param[in]     rviz_cam_pose   camera orientation as defined by rviz.
+   * @param[in]     rviz2_cam_pose   camera orientation as defined by rviz2.
    * @param[out]    marker_pose     camera orientation as defined by markers.
    */
-  void rvizCamToMarkerOrientation(const geometry_msgs::Pose& rviz_cam_pose,
-                                  geometry_msgs::Pose& marker_pose);
+  void rviz2CamToMarkerOrientation(const geometry_msgs::msg::Pose& rviz2_cam_pose,
+                                  geometry_msgs::msg::Pose& marker_pose);
 
   /**
    * @brief Creates cam movement to goal marker and appends this to the trajectory. 
@@ -258,7 +262,7 @@ private:
    * @param[in]         last_marker_iter   iterator to last marker of marker list.
    */
   void appendMarkerToTrajectory(const MarkerIterator& goal_marker_iter,
-                                rviz_cinematographer_msgs::CameraTrajectoryPtr& cam_trajectory,
+                                rviz2_cinematographer_msgs::msg::CameraTrajectoryPtr& cam_trajectory,
                                 const MarkerIterator& last_marker_iter);
 
   /**
@@ -268,10 +272,10 @@ private:
    * @param[out]    cam_movement    message.
    */
   void convertMarkerToCamMovement(const TimedMarker& marker,
-                                  rviz_cinematographer_msgs::CameraMovement& cam_movement);
+                                  rviz2_cinematographer_msgs::msg::CameraMovement& cam_movement);
 
   /**
-   * @brief Moves rviz camera to marker pose by publishing a CameraTrajectory message.
+   * @brief Moves rviz2 camera to marker pose by publishing a CameraTrajectory message.
    *
    * @param[in] marker_name         name of marker.
    * @param[in] transition_duration     (optional) provide time needed to get to marker - default: transition_duration of marker.
@@ -284,7 +288,7 @@ private:
    *
    * @param[in] feedback    feedback the interaction with the interactive marker generates.
    */
-  void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  void processFeedback(const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
 
   /**
    * @brief Rotates a vector by a quaternion.
@@ -294,7 +298,7 @@ private:
    * @return the rotated vector.
    */
   tf::Vector3 rotateVector(const tf::Vector3& vector,
-                           const geometry_msgs::Quaternion& quat);
+                           const geometry_msgs::msg::Quaternion& quat);
 
   /**
    * @brief Safes poses and durations of markers to yaml file.
@@ -308,7 +312,7 @@ private:
    *
    * @param[in] feedback    feedback from selected marker.
    */
-  void addMarkerBeforeClicked(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  void addMarkerBeforeClicked(const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
 
   /**
    * @brief Adds a marker between the currently selected marker and the one before in the trajectory.
@@ -322,7 +326,7 @@ private:
    *
    * @param[in] feedback    feedback from selected marker.
    */
-  void addMarkerAtClicked(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  void addMarkerAtClicked(const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
   
   /**
    * @brief Adds a marker at the pose of the selected marker.
@@ -336,7 +340,7 @@ private:
    *
    * @param[in] feedback    feedback from selected marker.
    */
-  void addMarkerBehindClicked(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  void addMarkerBehindClicked(const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
 
   /**
    * @brief Adds a marker between the selected marker and the next one in the trajectory.
@@ -350,7 +354,7 @@ private:
    *
    * @param[in] feedback    feedback from selected marker.
    */
-  void removeClickedMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  void removeClickedMarker(const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
   
   /**
    * @brief Removes the marker called marker_name.
@@ -364,7 +368,7 @@ private:
    *
    * @param[in] empty    empty msgs needed as this is a callback function.
    */
-  void removeCurrentMarker(const std_msgs::EmptyConstPtr& empty);
+  void removeCurrentMarker(const std_msgs::msg::EmptyConstPtr& empty);
 
   /**
    * @brief Saves markers in server.
@@ -376,11 +380,10 @@ private:
   /**
    * @brief Load marker poses from a file.
    *
-   * @param[in] nh          node handle.
+   * @param[in] node        node.
    * @param[in] param_name  root name of the parameters.
    */
-  void loadParams(const ros::NodeHandle& nh,
-                  const std::string& param_name);
+  void loadParams(const rclcpp::Node::SharedPtr node, const std::string& param_name);
 
   /**
    * @brief Gets marker with specified name.
@@ -435,7 +438,7 @@ private:
    * @param[in]     duplicate_ends  flag if first and last marker should be duplicated for spline - some types of splines don't interpolate between the the end points and the ones next to them.
    */
   void markersToSplinedPoses(const MarkerList& markers,
-                             std::vector<geometry_msgs::Pose>& spline_poses,
+                             std::vector<geometry_msgs::msg::Pose>& spline_poses,
                              double frequency,
                              bool duplicate_ends = true);
 
@@ -446,7 +449,7 @@ private:
    * @param[out]    trajectory      resulting trajectory.
    */
   void markersToSplinedCamTrajectory(const MarkerList& markers,
-                                     rviz_cinematographer_msgs::CameraTrajectoryPtr trajectory);
+                                     rviz2_cinematographer_msgs::msg::CameraTrajectoryPtr trajectory);
 
   /**
    * @brief Generates trajectories for eye positions, focus positions and up directories, needed for spline generation.
@@ -491,13 +494,13 @@ private:
                              const std::vector<double>& transition_durations,
                              const std::vector<double>& wait_durations,
                              const double total_transition_duration,
-                             rviz_cinematographer_msgs::CameraTrajectoryPtr trajectory);
+                             rviz2_cinematographer_msgs::CameraTrajectoryPtr trajectory);
 
   /** @brief Call service to record current trajectory. */
   void publishRecordParams();
 
   /** @brief Listen to the message that the recording is over. */
-  void recordFinishedCallback(const rviz_cinematographer_msgs::Finished::ConstPtr& record_finished);
+  void recordFinishedCallback(const rviz2_cinematographer_msgs::msg::Finished::ConstPtr& record_finished);
 
   /** @brief Starts video recorder nodelet. */
   void videoRecorderThread();
@@ -512,45 +515,29 @@ private:
   void clickButton(QPushButton* button){button->click();};
   
   /** @brief Ui object - connection to GUI. */
-  Ui::rviz_cinematographer_gui ui_;
+  Ui::rviz2_cinematographer_gui ui_;
   /** @brief Widget. */
   QWidget* widget_;
 
-  /** @brief Publishes camera trajectory messages. */
-  ros::Publisher camera_trajectory_pub_;
-  /** @brief Publishes the trajectory that is defined by the markers. */
-  ros::Publisher view_poses_array_pub_;
-  /** @brief Publishes the parameters for a recording. */
-  ros::Publisher record_params_pub_;
+  rclcpp::Publisher<rviz2_cinematographer_msgs::msg::CameraTrajectory>::SharedPtr camera_trajectory_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr view_poses_array_pub_;
+  rclcpp::Publisher<rviz2_cinematographer_msgs::msg::Record>::SharedPtr record_params_pub_;
 
-  /** @brief Subscribes to the camera pose. */
-  ros::Subscriber camera_pose_sub_;
-  /** @brief Subscribes to listen when the recording is over. */
-  ros::Subscriber record_finished_sub_;
-  /** @brief Subscribes to delete marker msgs. */
-  ros::Subscriber delete_marker_sub_;
+  rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr camera_pose_sub_;
+  rclcpp::Subscription<rviz2_cinematographer_msgs::msg::Finished>::SharedPtr record_finished_sub_;
+  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr delete_marker_sub_;
 
-  /** @brief Starts video recorder nodelet. */
-  boost::shared_ptr<boost::thread> video_recorder_thread_;
+  std::shared_ptr<std::thread> video_recorder_thread_;
 
-  /** @brief Connects markers to callbacks. */
-  interactive_markers::MenuHandler menu_handler_;
-  /** @brief Stores markers - needed for #menu_handler. */
   std::shared_ptr<interactive_markers::InteractiveMarkerServer> server_;
+  interactive_markers::MenuHandler menu_handler_;
 
-  /** @brief Current camera pose. */
-  geometry_msgs::Pose cam_pose_;
-
-  /** @brief Name of currently selected marker. */
+  geometry_msgs::msg::Pose cam_pose_;
   std::string current_marker_name_;
-
-  /** @brief Currently maintained list of TimedMarkers. */
   MarkerList markers_;
-
-  /** @brief True if recorder was destructed. */
   bool recorder_running_;
 };
 
 } // namespace
 
-#endif //RVIZ_CINEMATOGRAPHER_GUI_H
+#endif //RVIZ2_CINEMATOGRAPHER_GUI_H

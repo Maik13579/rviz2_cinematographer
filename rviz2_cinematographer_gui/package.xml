@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rviz2_cinematographer_gui</name>
+  <version>0.0.0</version>
+  <description>Manipulate the RViz2 camera using trajectories and record the resulting views.</description>
+  <author email="razlaw@ais.uni-bonn.de">Jan Razlaw</author>
+  <maintainer email="maik.knof@gmx.de">Maik Knof</maintainer>
+  <license>BSD</license>
+
+  <!-- Build tool dependencies -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  
+  <!-- Build and runtime dependencies -->
+  <depend>Qt5Widgets</depend>
+  <depend>rclcpp</depend>
+  <depend>interactive_markers</depend>
+  <depend>nav_msgs</depend>
+  <depend>rqt_gui</depend>
+  <depend>rqt_gui_cpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>rviz2_cinematographer_msgs</depend>
+  <depend>rviz2_cinematographer_view_controller</depend>
+  <!--<depend>video_recorder</depend>-->
+  <depend>yaml-cpp</depend>
+  <depend>Eigen3</depend>
+
+  <!-- Export the plugin -->
+  <export>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>
