@@ -1,6 +1,10 @@
-# Rviz Cinematographer
+# Work in Progress
 
-An rqt plugin to create and edit trajectories for the rviz camera and record its views in a video.
+This fork is not ready for use yet.
+
+# Rviz2 Cinematographer
+
+An rqt plugin to create and edit trajectories for the rviz2 camera and record its views in a video.
 
 An example trajectory generated in about 3 minutes:
 
@@ -14,12 +18,12 @@ Visualized [Model Data](https://grabcad.com/library/office-building-9).
 - [Details - Package Structure](readme)
 - [Details - Rviz View Controller](rviz_cinematographer_view_controller)
 - [Details - Video Recorder](video_recorder)
- 
+
 # Remark
 
 The recorded video will contain a watermark in the bottom right corner.  
 Feel free to deactivate it in the GUI.  
-If you do so, please mention the *Rviz Cinematographer* in a comment somewhere around your video.  
+If you do so, please mention the _Rviz Cinematographer_ in a comment somewhere around your video.  
 Your viewers might also be interested in using this tool.
 
 # License
