@@ -1,0 +1,24 @@
+services:
+  rviz2_cinematographer:
+    container_name: rviz2_cinematographer
+    extends: common
+    command: tail -f /dev/null #keep container running
+
+  rviz2:
+    container_name: rviz2
+    extends: common
+    command: ros2 run rviz2 rviz2
+    
+  common:
+    image: rviz2_cinematographer
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: base #for development change that later
+    environment:
+      ROS_DOMAIN_ID: $ROS_DOMAIN_ID
+      DISPLAY: $DISPLAY
+    network_mode: host
+    ipc: host
+    privileged: true
+    stdin_open: true
