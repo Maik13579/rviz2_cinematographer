@@ -9,3 +9,4 @@ latex/
 *.directory
 *.kdev4
 *.orig
+.vscode/settings.json

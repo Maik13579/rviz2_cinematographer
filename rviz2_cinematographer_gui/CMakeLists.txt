@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.8)
 
+project(rviz2_cinematographer_gui)
+
 # Enable AUTOMOC, AUTOUIC, AUTORCC for Qt
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-
-project(rviz2_cinematographer_gui)
+set(CMAKE_AUTOUIC_SEARCH_PATHS src)
 
 # Use C++17
 set(CMAKE_CXX_STANDARD 17)
@@ -28,8 +29,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(rviz2_cinematographer_view_controller REQUIRED)
 find_package(rviz2_cinematographer_msgs REQUIRED)
-# find_package(video_recorder REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
@@ -44,8 +44,7 @@ add_library(rviz2_cinematographer_gui_plugin SHARED
 # Include directories
 target_include_directories(rviz2_cinematographer_gui_plugin PUBLIC
     include
-    Eigen3::Eigen
-    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 # Add dependencies using ament_target_dependencies
@@ -70,6 +69,13 @@ target_link_libraries(rviz2_cinematographer_gui_plugin
     Qt5::Widgets
     yaml-cpp
     Eigen3::Eigen
+)
+
+# Set target properties explicitly
+set_target_properties(rviz2_cinematographer_gui_plugin PROPERTIES
+    AUTOMOC ON
+    AUTOUIC ON
+    AUTORCC ON
 )
 
 # Pluginlib export for the plugin description
@@ -103,13 +109,6 @@ install(TARGETS rviz2_cinematographer_gui_plugin
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
-
-# Dummy target for IDEs
-file(GLOB_RECURSE all_headers_for_ides
-    ${CMAKE_SOURCE_DIR}/**/*.hpp
-    ${CMAKE_SOURCE_DIR}/**/*.h
-)
-add_custom_target(ide_includes_${PROJECT_NAME} SOURCES ${all_headers_for_ides})
 
 # Finalize the package
 ament_package()
